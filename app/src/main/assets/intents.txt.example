@@ -1,0 +1,8 @@
+# Порядок строк = порядок выходов модели. Формат: ИНТЕНТ|действие1,действие2
+# Переименуйте в intents.txt вместе с mobilebert_quant.tflite и vocab.txt.
+WIFI_ON|enable_wifi
+WIFI_OFF|disable_wifi
+FLASHLIGHT_ON|flashlight_on
+FLASHLIGHT_OFF|flashlight_off
+CREATE_REMINDER|create_calendar_event
+UNKNOWN|
