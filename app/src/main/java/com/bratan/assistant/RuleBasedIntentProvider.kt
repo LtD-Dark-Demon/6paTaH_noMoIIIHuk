@@ -16,7 +16,9 @@ class RuleBasedIntentProvider : IntentProvider {
             on.containsMatchIn(t) && wifi.containsMatchIn(t) -> r("WIFI_ON", Actions.WIFI_ON)
             remind.containsMatchIn(t) -> {
                 val title = t.replace(remind, "").trim().ifBlank { "Напоминание" }
-                CommandResult("CREATE_REMINDER", 0.9f, listOf(Actions.CALENDAR),
+                // Ниже порога 0.85: при наличии API облако сможет извлечь дату/время.
+                // Без API локальный результат всё равно останется доступен через merge().
+                CommandResult("CREATE_REMINDER", 0.80f, listOf(Actions.CALENDAR),
                     mapOf("title" to title), CommandResult.Source.RULES)
             }
             else -> null
