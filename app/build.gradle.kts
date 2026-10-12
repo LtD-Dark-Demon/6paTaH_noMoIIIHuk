@@ -11,8 +11,8 @@ android {
         applicationId = "com.bac9j.bratan"
         minSdk = 30
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
         // [OPT] Helio G99 = arm64. Убирает нативные библиотеки TFLite для остальных ABI (APK меньше на ~6-8 МБ).
         ndk { abiFilters += listOf("arm64-v8a") }
