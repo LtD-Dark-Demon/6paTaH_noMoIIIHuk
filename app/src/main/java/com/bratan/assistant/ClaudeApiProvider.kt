@@ -16,6 +16,8 @@ class ClaudeApiProvider(
         val body = JSONObject()
             .put("model", model)
             .put("max_tokens", 300)
+            // Для классификации reasoning не нужен; иначе Haiku 5.5 может вернуть thinking перед text.
+            .put("thinking", JSONObject().put("type", "disabled"))
             .put("system", SYSTEM_PROMPT)
             .put("messages", JSONArray().put(
                 JSONObject().put("role", "user").put("content", text)))
@@ -40,10 +42,20 @@ class ClaudeApiProvider(
     }
 
     private fun parse(resp: String): CommandResult? {
-        val content = JSONObject(resp).getJSONArray("content")
-            .getJSONObject(0).getString("text")
-        val json = JSONObject(content.substring(
-            content.indexOf('{'), content.lastIndexOf('}') + 1))
+        val blocks = JSONObject(resp).getJSONArray("content")
+        val content = buildString {
+            for (i in 0 until blocks.length()) {
+                val block = blocks.optJSONObject(i) ?: continue
+                if (block.optString("type") == "text") append(block.optString("text"))
+            }
+        }
+        if (content.isBlank()) return null
+
+        val start = content.indexOf('{')
+        val end = content.lastIndexOf('}')
+        if (start < 0 || end < start) return null
+        val json = JSONObject(content.substring(start, end + 1))
+
         val actions = ArrayList<String>()
         json.optJSONArray("actions")?.let { arr ->
             for (i in 0 until arr.length()) {
