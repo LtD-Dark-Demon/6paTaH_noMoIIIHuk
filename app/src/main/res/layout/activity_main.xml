@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+        <TextView android:id="@+id/tvStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="○ Остановлен" android:textSize="18sp" android:layout_marginBottom="12dp"/>
+        <EditText android:id="@+id/etApiKey" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/hint_api_key" android:inputType="textPassword"/>
+        <EditText android:id="@+id/etWakeWord" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/hint_wake_word"/>
+        <Button android:id="@+id/btnStart" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/btn_start"/>
+        <Button android:id="@+id/btnStop" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/btn_stop"/>
+        <Button android:id="@+id/btnBattery" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/btn_battery"/>
+        <LinearLayout android:id="@+id/xiaomiCard" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="12dp" android:padding="12dp" android:background="#1A000000" android:visibility="gone">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/xiaomi_hint" android:textSize="13sp"/>
+            <Button android:id="@+id/btnAutostart" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/btn_autostart"/>
+            <Button android:id="@+id/btnPowerKeeper" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/btn_powerkeeper"/>
+        </LinearLayout>
+        <TextView android:id="@+id/tvLog" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:fontFamily="monospace" android:textSize="12sp"/>
+    </LinearLayout>
+</ScrollView>

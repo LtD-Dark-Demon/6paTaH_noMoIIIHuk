@@ -1,1 +1,1 @@
--keep class org.tensorflow.lite.** { *; }
+# minify выключен; файл-заглушка

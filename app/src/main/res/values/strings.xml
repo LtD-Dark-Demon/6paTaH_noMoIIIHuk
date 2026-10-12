@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Братан</string>
+    <string name="hint_api_key">Ключ Anthropic API (необязательно)</string>
+    <string name="hint_wake_word">Стартовое слово (братан)</string>
+    <string name="btn_start">Старт</string>
+    <string name="btn_stop">Стоп</string>
+    <string name="btn_battery">Настройки батареи</string>
+    <string name="btn_autostart">1. Автозапуск → включить</string>
+    <string name="btn_powerkeeper">2. Контроль активности → Нет ограничений</string>
+    <string name="xiaomi_hint">HyperOS убивает фоновые сервисы. Обязательно:\n1–2 — кнопки ниже;\n3 — в «Недавних» зажмите карточку Братана → замок;\n4 — Настройки → Расширенные → Расширение памяти → Выкл.;\n5 — отключите «О'кей, Google» (Voice Match).</string>
 </resources>

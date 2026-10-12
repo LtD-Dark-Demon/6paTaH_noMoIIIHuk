@@ -4,40 +4,39 @@ plugins {
 }
 
 android {
-    namespace = "com.bac9j.bratan"
+    namespace = "com.bratan.assistant"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.bac9j.bratan"
+        applicationId = "com.bratan.assistant"
         minSdk = 30
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.0.1"
-
-        // [OPT] Helio G99 = arm64. Убирает нативные библиотеки TFLite для остальных ABI (APK меньше на ~6-8 МБ).
-        ndk { abiFilters += listOf("arm64-v8a") }
+        versionCode = 3
+        versionName = "3.0"
+        ndk { abiFilters += "arm64-v8a" }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            // Личное использование: подпись автоматически создаваемым debug-ключом, APK ставится сразу.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    androidResources { noCompress += "tflite" }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
-
-    // Обязательно: иначе assets.openFd() для .tflite падает (файл сжимается), и memory-mapping не работает.
-    androidResources { noCompress += listOf("tflite") }
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-    implementation("org.tensorflow:tensorflow-lite:2.14.0")
     implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+    implementation("org.tensorflow:tensorflow-lite:2.14.0")
 }
