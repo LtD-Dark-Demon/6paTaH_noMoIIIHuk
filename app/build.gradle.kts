@@ -40,4 +40,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
     implementation("org.tensorflow:tensorflow-lite:2.14.0")
     testImplementation("junit:junit:4.13.2")
+    // На JVM Android-версия org.json — заглушка; нужен реальный парсер для unit-тестов ClaudeApiProvider.
+    testImplementation("org.json:json:20240303")
 }
