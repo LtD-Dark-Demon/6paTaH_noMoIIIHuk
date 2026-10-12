@@ -44,7 +44,7 @@ class ModularVoiceService : Service() {
 
     private var restartJob: Job? = null
     private var errorStreak = 0
-    private var preferOffline = true
+    private var preferOffline = false
     private var started = false
     private var lastText = ""
     private var lastTextAt = 0L
@@ -76,6 +76,7 @@ class ModularVoiceService : Service() {
         pm.addThermalStatusListener(mainExecutor, thermalListener)
 
         setupSpeechRecognizer()
+        AssistantBus.post("Готов к запуску")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -90,6 +91,7 @@ class ModularVoiceService : Service() {
                 stopSelf(); return START_NOT_STICKY
             }
             startForeground(NOTIFICATION_ID, createNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
+            AssistantBus.post("Сервис запущен")
         } catch (e: Exception) {
             Log.e(TAG, "Не удалось запустить foreground: ${e.message}")
             stopSelf()
@@ -103,6 +105,8 @@ class ModularVoiceService : Service() {
         // [FIX] onStartCommand вызывается повторно — второй startListening давал ERROR_RECOGNIZER_BUSY.
         if (!started) {
             started = true
+            val sample = Prefs.wakeWord(this).takeIf { it.isNotBlank() }?.let { "$it, включи фонарик" } ?: "включи фонарик"
+            AssistantBus.post("Слушаю. Скажи: «$sample»")
             startListening()
         }
         return START_STICKY
@@ -117,7 +121,10 @@ class ModularVoiceService : Service() {
                     errorStreak = 0
                     val spokenText = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()
                     if (!spokenText.isNullOrBlank()) {
+                        AssistantBus.post("Услышал: «$spokenText»")
                         handleVoiceInput(spokenText)
+                    } else {
+                        AssistantBus.post("Речь не распознана")
                     }
                     restartListeningSafely()
                 }
@@ -129,8 +136,10 @@ class ModularVoiceService : Service() {
                             AssistantBus.post("Нет разрешения на микрофон")
                             stopSelf()
                         }
-                        SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT ->
+                        SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
+                            AssistantBus.post("Слушаю дальше")
                             restartListeningSafely() // штатная тишина
+                        }
                         SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> {
                             speechRecognizer?.cancel()
                             restartListeningSafely(1000)
@@ -138,11 +147,13 @@ class ModularVoiceService : Service() {
                         SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED, SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE -> {
                             // Нет офлайн-пакета русского — продолжаем в онлайн-режиме
                             preferOffline = false
+                            AssistantBus.post("Офлайн русский недоступен, пробую онлайн-распознавание")
                             restartListeningSafely(1000)
                         }
                         else -> {
                             // [OPT] Экспоненциальная пауза 0.5 -> 8 с при серии ошибок
                             errorStreak++
+                            AssistantBus.post("Ошибка распознавания: $error")
                             restartListeningSafely(minOf(500L shl minOf(errorStreak, 4), 8000L))
                         }
                     }
@@ -168,7 +179,11 @@ class ModularVoiceService : Service() {
         lastTextAt = now
 
         // [FIX] Раньше в обработку (и в облако) уходила ЛЮБАЯ услышанная речь. Теперь только фразы со стартовым словом.
-        val text = stripWakeWord(raw) ?: return
+        val text = stripWakeWord(raw) ?: run {
+            val ww = Prefs.wakeWord(this)
+            if (ww.isNotBlank()) AssistantBus.post("Игнор: скажи сначала «$ww»")
+            return
+        }
 
         serviceScope.launch {
             wakeLock?.acquire(WAKELOCK_TIMEOUT_MS)
@@ -177,7 +192,7 @@ class ModularVoiceService : Service() {
                 val result = assistantInteractor.processVoiceCommand(text)
 
                 Log.d(TAG, "Результат: ${result.intent}, Источник: ${result.source}")
-                AssistantBus.post("«$text» → ${result.intent} (${result.source}, ${"%.2f".format(result.confidence)})")
+                AssistantBus.post("«$text» → ${result.intent} (${"%.2f".format(result.confidence)})")
 
                 // [FIX] Вызов исполнителя действий (у Gemma отсутствовал)
                 if (result.intent != "UNKNOWN" && result.actions.isNotEmpty()) {
@@ -205,7 +220,7 @@ class ModularVoiceService : Service() {
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ru-RU")
-            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, preferOffline) // Оптимизация Android 14
+            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, preferOffline)
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
         }
