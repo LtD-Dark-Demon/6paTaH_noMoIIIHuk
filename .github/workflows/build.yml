@@ -14,8 +14,15 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
-      - run: chmod +x gradlew && ./gradlew :app:testReleaseUnitTest :app:assembleRelease --no-daemon
+      - name: Test, lint and build release
+        run: chmod +x gradlew && ./gradlew :app:testReleaseUnitTest :app:lintRelease :app:assembleRelease --no-daemon
+      - name: Package full source project
+        run: zip -r BratanAssistant-3.0-source.zip . -x '.git/*' '.gradle/*' 'app/build/*' 'BratanAssistant-3.0-source.zip'
       - uses: actions/upload-artifact@v4
         with:
-          name: bratan-v3-apk
+          name: bratan-apk
           path: app/build/outputs/apk/release/app-release.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bratan-project
+          path: BratanAssistant-3.0-source.zip
